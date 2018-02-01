@@ -1,13 +1,14 @@
 import webapp2
+import cgi
 
 form="""
 <form method="post"> 
 	Whats is your birthday?
 	<br>
-	<label>Month <input type="text" name="month"></label>
-	<label>Day <input type="text" name="day"></label>
-	<label>Year <input type="text" name="year"> </label>
-	<div style="color: red"'%(error)s'</div>
+	<label>Month <input type="text" name="month" value="%(month)s"></label>
+	<label>Day <input type="text" name="day" value="%(day)s"></label>
+	<label>Year <input type="text" name="year" value="%(year)s"> </label>
+	<div style="color: red">%(error)s</div>
 	<input type="submit">
 </form> 
 """
@@ -30,21 +31,28 @@ month_abbvs = dict((m[:3].lower(),m) for m in months)
 
 			
 class MainPage(webapp2.RequestHandler):
-	def write_form(error=""):
-		self.response.out.write(form % {"error": error})
+	def write_form(self,error="",month="",day="",year=""):
+		self.response.out.write(form % {"error": error,
+										"month": escape_html(month),
+										"day": escape_html(day),
+										"year":escape_html(year)})
 		
 	def get(self):
 		#self.response.headers['Content-Type'] = 'text/plain'
-		self.response.out.write(form)
+		self.write_form()
 		
 	def post(self):
-		user_month = valid_month(self.request.get("month"))
-		user_day = valid_day(self.request.get("day"))
-		user_year = valid_year(self.request.get("year"))
+		month = self.request.get("month")
+		day = self.request.get("day")
+		year = self.request.get("year")
+		
+		user_month = valid_month(month)
+		user_day = valid_day(day)
+		user_year = valid_year(year)
 
 	
 		if not (user_month and user_day and user_year):
-                    self.response.out.write(form)
+                    self.write_form("Invalid!",month,day,year)
 		else:
                     self.response.out.write("Info OK!")
 
@@ -69,3 +77,7 @@ def valid_year(year):
 		year = int(year)
 		if year >= 1900 and year <= 2020:
 			return year
+			
+def escape_html(s):
+	if s :
+		cgi.escape(s, quote = True)
