@@ -1,6 +1,6 @@
 import webapp2
 import cgi
-
+import jinja2
 form="""
 <form method="post"> 
 	Whats is your birthday?
@@ -33,9 +33,9 @@ month_abbvs = dict((m[:3].lower(),m) for m in months)
 class MainPage(webapp2.RequestHandler):
 	def write_form(self,error="",month="",day="",year=""):
 		self.response.out.write(form % {"error": error,
-										"month": escape_html(month),
-										"day": escape_html(day),
-										"year":escape_html(year)})
+										"month": cgi.escape(month,True),
+										"day": cgi.escape(day,True),
+										"year":cgi.escape(year,True)})
 		
 	def get(self):
 		#self.response.headers['Content-Type'] = 'text/plain'
@@ -54,10 +54,14 @@ class MainPage(webapp2.RequestHandler):
 		if not (user_month and user_day and user_year):
                     self.write_form("Invalid!",month,day,year)
 		else:
-                    self.response.out.write("Info OK!")
+                    self.redirect("/thanks")
+					
+class ThanksHandler(webapp2.RequestHandler):
+	def get(self):
+		self.response.out.write("Info OK!")
 
 app = webapp2.WSGIApplication([
-	('/', MainPage),
+	('/', MainPage), ('/thanks', ThanksHandler)
 ], debug=True)
 
 
@@ -80,4 +84,4 @@ def valid_year(year):
 			
 def escape_html(s):
 	if s :
-		cgi.escape(s, quote = True)
+		cgi.escape(s, True)
